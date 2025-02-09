@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9876:9876"
+    environment:
+      - QINGPING_CLIENT_ID=put-your-client-id-here
+      - QINGPING_CLIENT_SECRET=put-your-client-secret-here
+    restart: unless-stopped
