@@ -6,7 +6,7 @@ on:
     tags: [ '*.*.*' ]
 
 env:
-  IMAGE_NAME: qingping-prometheus-exporter
+  IMAGE_NAME: tan4ek/qingping-prometheus-exporter
 
 jobs:
   build:
