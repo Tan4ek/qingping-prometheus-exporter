@@ -269,6 +269,7 @@ class MetricsCollector:
         self._cache_lock = threading.Lock()
         self._stop_flag = threading.Event()
         self._collector_thread = None
+        self._error_count = 0  # Initialize error counter
 
     def start(self):
         """Start background metrics collector."""
@@ -306,14 +307,29 @@ class MetricsCollector:
             devices = response.get('devices', [])
             
             new_metrics = []
-            new_metrics.append("# HELP qingping_sensor_value Sensor value")
-            new_metrics.append("# TYPE qingping_sensor_value gauge")
+            
+            # Add help and type for error counter
+            new_metrics.append("# HELP qingping_error_total Total number of API errors")
+            new_metrics.append("# TYPE qingping_error_total counter")
+            
+            # Add current error count
+            new_metrics.append(f'qingping_error_total{{type="api_error"}} {self._error_count}')
             
             for device in devices:
                 info = device['info']
                 data = device['data']
                 device_name = info.get('name', 'unknown')
                 mac = info.get('mac', 'unknown')
+
+                # Add device timestamp metric
+                # Add help and type for device timestamp
+                new_metrics.append("# HELP qingping_device_timestamp_seconds Unix timestamp of last device update")
+                new_metrics.append("# TYPE qingping_device_timestamp_seconds gauge")
+                timestamp = data.get('timestamp', {}).get('value', None)
+                if timestamp is not None:
+                    new_metrics.append(
+                        f'qingping_device_timestamp_seconds{{device="{device_name}",mac="{mac}"}} {timestamp}'
+                    )
 
                 sensors = {
                     'co2': ('ppm', 'CO2 Level'),
@@ -323,9 +339,13 @@ class MetricsCollector:
                     'temperature': ('C', 'Temperature')
                 }
 
+                # Add help and type for sensor values
+                new_metrics.append("# HELP qingping_sensor_value Sensor value")
+                new_metrics.append("# TYPE qingping_sensor_value gauge")
                 for sensor, (unit, desc) in sensors.items():
                     value = data.get(sensor, {}).get('value')
                     if value is not None:
+
                         new_metrics.append(
                             f'qingping_sensor_value{{device="{device_name}",mac="{mac}",type="{sensor}",unit="{unit}"}} {value}'
                         )
@@ -335,8 +355,15 @@ class MetricsCollector:
                 self._metrics_cache = new_metrics
 
         except Exception as e:
+            error_type = type(e).__name__  # Use exception class name as error type
+            self._error_count += 1  # Increment error counter
+            
             with self._cache_lock:
-                self._metrics_cache = [f"# Error collecting metrics: {str(e)}"]
+                self._metrics_cache = [
+                    "# HELP qingping_error_total Total number of API errors",
+                    "# TYPE qingping_error_total counter",
+                    f'qingping_error_total{{type="api_error"}} {self._error_count}'
+                ]
 
 class PrometheusMetricHandler(http.server.BaseHTTPRequestHandler):
     """
