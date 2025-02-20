@@ -10,4 +10,17 @@ services:
     environment:
       - QINGPING_CLIENT_ID=put-your-client-id-here
       - QINGPING_CLIENT_SECRET=put-your-client-secret-here
+      - QINGPING_UPDATE_INTERVAL=5
+      - LOG_LEVEL=INFO
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9876/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
