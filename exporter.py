@@ -702,7 +702,7 @@ def get_config() -> Tuple[str, str, int, int, int, int, str, Optional[str]]:
     except ValueError:
         max_staleness = 3600
     
-    log_level = args.log_level
+    log_level = args.log_level or os.environ.get('LOG_LEVEL', 'INFO')
     log_file = args.log_file or os.environ.get('LOG_FILE')
     
     if not client_id or not client_secret:
@@ -715,12 +715,20 @@ def get_config() -> Tuple[str, str, int, int, int, int, str, Optional[str]]:
     return client_id, client_secret, port, interval, max_errors, max_staleness, log_level, log_file
 
 if __name__ == "__main__":
+    # Initialize basic logging first for early error handling
+    logging.basicConfig(
+        format='%(asctime)s.%(msecs)03d [%(levelname)s] %(name)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
+    logger = logging.getLogger(__name__)
+
     try:
         config = get_config()
         client_id, client_secret, port, interval, max_errors, max_staleness, log_level, log_file = config
         
+        # Now setup proper logging with all configurations
         setup_logging(log_level, log_file)
-        logger = logging.getLogger(__name__)
         
         logger.info("Initializing Qingping Prometheus Exporter")
         logger.debug("Configuration: port=%d, interval=%d, max_errors=%d, max_staleness=%d, log_level=%s, log_file=%s",
