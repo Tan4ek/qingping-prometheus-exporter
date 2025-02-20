@@ -10,7 +10,7 @@ services:
     environment:
       - QINGPING_CLIENT_ID=put-your-client-id-here
       - QINGPING_CLIENT_SECRET=put-your-client-secret-here
-      - QINGPING_UPDATE_INTERVAL=5
+      - QINGPING_UPDATE_INTERVAL=60
       - LOG_LEVEL=INFO
     restart: unless-stopped
     healthcheck:
