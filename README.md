@@ -19,6 +19,8 @@ Note: At this time, the workflow only supports data from Qingping Cloud services
 ## Prerequisite
 
 - Python 3.12+
+- For TLS security, use a patched Python release: 3.12.16, 3.13.18, 3.14.10,
+  3.15.2 or later within the same branch. The Docker image uses 3.12.16.
 - Qingping air monitor (for example, [Qingping Air Monitor](https://www.qingping.co/air-monitor/overview))
 
 ## Configuration
@@ -30,6 +32,11 @@ Generate a Qingping Developer API token from [developer.qingping.co/personal/per
 ```
 docker build -t qingping-prometheus-exporter .
 ```
+
+After the October 2026 eMudhra CA incident, rebuild existing images with
+`docker build --pull --no-cache -t qingping-prometheus-exporter .` and recreate
+the container. The standard-library HTTPS client uses Python's TLS verifier
+and the system CA bundle; there is no application certifi dependency to update.
 ```
 docker run -d --name qingping-prometheus-exporter -p 9876:9876 -e QINGPING_CLIENT_ID=your-client-id -e QINGPING_CLIENT_SECRET=your-client-secret qingping-prometheus-exporter .
 ```

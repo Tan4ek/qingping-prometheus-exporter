@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.12.16-alpine
 
 WORKDIR /app
 
@@ -20,4 +20,4 @@ EXPOSE 9876
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:9876/health || exit 1
 
-ENTRYPOINT ["python3", "exporter.py"] 
+ENTRYPOINT ["python3", "exporter.py"]
